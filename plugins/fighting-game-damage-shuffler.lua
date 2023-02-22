@@ -37,7 +37,7 @@ end
 
 local function hitstun_swap(gamemeta)
 	return function(data)
-	-- To be used when address value registers a single hit example: value of 1 = 1 hit ingame. Best used for games without proper combos or combo counter
+	-- To be used when address value registers a single hit example: value of 1 = 1 hit ingame.
 
 		local hitindicator = hitstun
 		local previoushit = data
@@ -45,14 +45,16 @@ local function hitstun_swap(gamemeta)
 		local previoushit = data.hitstun
 		data.hitstun = hitindicator
 
-		if hitindicator = 1 then
+		if hitindicator == 1 then
 			return true 
 			else
 			return false
-			end
 		end
+	end
+end
 
---local function combo_swap(gamemeta)
+--Realised that I don't think this is necessery yet
+--'local function combo_swap(gamemeta)
 	--return function(data)
 	-- To be used when address value registers hits more than 1 and value resets to 0 after combo finishes. Best used for games with combo counters
 	
@@ -67,17 +69,13 @@ local function hitstun_swap(gamemeta)
 	--end
 --end-
 
-local backupchecks = {
-}
-
 local gamedata = {
-	[SFA3]={ 
+	['SFA3']={ --Street Fighter Alpha 3 USA PSX
 		hitstun=function() return memory.read(0x19D0CD, "MainRAM") end,
-	}
-	[SFEX2+]={
+	},
+	['SFEX2Plus']={ --Street Fighter EX 2 Plus Japan PSX
 		hitstun=function() return memory.read(0x1EAA8C, "MainRAM") end,
-	}
-		}
+	},
 }
 
 local function get_game_tag()
