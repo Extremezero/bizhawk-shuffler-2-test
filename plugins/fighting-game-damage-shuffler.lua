@@ -10,7 +10,6 @@ plugin.description =
 	Supports:
 	-Street Fighter Alpha 3 (USA)(PSX)
 	-Street Fighter EX2+ (JP)(PSX)
-	-Street Fighter III - 4rd Strike (3rd Strike Hack)(JP)(Arcade)
 ]]
 
 local NO_MATCH = 'NONE'
@@ -46,38 +45,37 @@ local function hitstun_swap(gamemeta)
 		local previoushit = data.hitstun
 		data.hitstun = hitindicator
 
-		if hitindicator > 0 then
+		if hitindicator = 1 then
 			return true 
 			else
-			hitindicator = 1 then
 			return false
 			end
 		end
 
-local function combo_swap(gamemeta)
-	return function(data)
+--local function combo_swap(gamemeta)
+	--return function(data)
 	-- To be used when address value registers hits more than 1 and value resets to 0 after combo finishes. Best used for games with combo counters
 	
-	local comboindicator = combo
-	local prevcombo = data
+	--local comboindicator = combo
+	--local prevcombo = data
 
-	if comboindicator = 1 then
-		return true
-		else
-		comboindicator => 2
-		return false
-	end
-end
+	--if comboindicator = 1 then
+		--return true
+		--else
+		--comboindicator => 2
+		--return false
+	--end
+--end-
 
 local backupchecks = {
 }
 
 local gamedata = {
 	[SFA3]={ 
-		combo=function() return memory.read(0x19D0CD, "MainRAM") end,
+		hitstun=function() return memory.read(0x19D0CD, "MainRAM") end,
 	}
 	[SFEX2+]={
-		combo=function() return memory.read(0x1EAA8C, "MainRAM") end,
+		hitstun=function() return memory.read(0x1EAA8C, "MainRAM") end,
 	}
 		}
 }
