@@ -1,7 +1,7 @@
 local plugin = {}
 
 plugin.name = "Fighting Game Hit Shuffler"
-plugin.author = "authorblues, kalimag, Extreme0"
+plugin.author = "authorblues, kalimag"
 plugin.settings = {}
 plugin.description =
 [[
@@ -109,7 +109,7 @@ function plugin.on_game_load(data, settings)
 	if tag ~= nil and tag ~= NO_MATCH then
 		log_message('game match: ' .. tag)
 		local gamemeta = gamedata[tag]
-		local func = gamemeta.func or generic_swap
+		local func = gamemeta.func or hitstun_swap
 		shouldSwap = func(gamemeta)
 	elseif tag == nil then
 		log_message(string.format('unrecognized? %s (%s)',
