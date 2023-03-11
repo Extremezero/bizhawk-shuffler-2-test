@@ -1,15 +1,24 @@
 local plugin = {}
 
 plugin.name = "Fighting Game Hit Shuffler"
-plugin.author = "authorblues, kalimag"
+plugin.author = "authorblues, kalimag, Extreme0"
 plugin.settings = {}
 plugin.description =
 [[
 	Automatically swaps games any time Player 1 gets hit before & after a combo. Checks hashes of different rom versions, so if you use a version of the rom that isn't recognized, nothing special will happen in that game (no swap on hit).
 
 	Supports:
+	-Capcom vs SNK Pro (USA)(PSX)
+	-Killer Instinct (USA)(SNES)
+	-Primal Rage (USA)(SNES)
+	-Street Fighter Alpha (USA)(PSX)*
+	-Street Fighter Alpha 2 (USA)(PSX)*
 	-Street Fighter Alpha 3 (USA)(PSX)
-	-Street Fighter EX2+ (JP)(PSX)
+	-Street Fighter EX2+ (JP)(USA)(PSX)
+	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
+
+	*Game does not swap when thrown/grabbed
+	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
 ]]
 
 local NO_MATCH = 'NONE'
@@ -39,13 +48,12 @@ local function hitstun_swap(gamemeta)
 	return function(data)
 	-- To be used when address value registers a single hit example: value of 1 = 1 hit ingame.
 
-		local hitindicator = hitstun
-		local previoushit = data
+		local hitindicator = gamemeta.hitstun() --Thanks Kalimag
 
 		local previoushit = data.hitstun
 		data.hitstun = hitindicator
 
-		if hitindicator == 1 then
+		if hitindicator == 1 and hitindicator ~= previoushit then
 			return true 
 			else
 			return false
@@ -53,29 +61,35 @@ local function hitstun_swap(gamemeta)
 	end
 end
 
---Realised that I don't think this is necessery yet
---'local function combo_swap(gamemeta)
-	--return function(data)
-	-- To be used when address value registers hits more than 1 and value resets to 0 after combo finishes. Best used for games with combo counters
-	
-	--local comboindicator = combo
-	--local prevcombo = data
-
-	--if comboindicator = 1 then
-		--return true
-		--else
-		--comboindicator => 2
-		--return false
-	--end
---end-
-
 local gamedata = {
+	['SFA']={ -- Street Fighter Alpha USA PSX
+		hitstun=function() return memory.read_u8(0x187123, "MainRAM") end,
+	},
+	['SFA2']={ -- Street Fighter Alpha 2 USA PSX
+		hitstun=function() return memory.read_u8(0x1981FE, "MainRAM") end,
+	},
 	['SFA3']={ --Street Fighter Alpha 3 USA PSX
-		hitstun=function() return memory.read(0x19D0CD, "MainRAM") end,
+		hitstun=function() return memory.read_u8(0x19D019, "MainRAM") end,
 	},
-	['SFEX2Plus']={ --Street Fighter EX 2 Plus Japan PSX
-		hitstun=function() return memory.read(0x1EAA8C, "MainRAM") end,
+	['SFEX2PlusJP']={ --Street Fighter EX 2 Plus Japan PSX
+		hitstun=function() return memory.read_u8(0x1E9210, "MainRAM") end,
 	},
+	['SFEX2PlusUSA']={ --Street Fighter EX 2 Plus USA PSX
+		hitstun=function() return memory.read_u8(0x1E9788, "MainRAM") end,
+	},
+	['SFIII:4rdStrike']={ --Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Arcade)
+		hitstun=function() return memory.read_u8(0x06961D, "sh2 : ram : 0x2000000-0x207FFFF") end,
+	},
+	['KISNES']={ --Killer Instinct SNES USA
+		hitstun=function() return memory.read_u8(0x0DE8, "WRAM") end,
+	},
+	['PrimalRageSNES']={ --Primal Rage SNES USA
+		hitstun=function() return memory.read_u8(0x1C94, "WRAM") end,
+	},
+	['CVSProPSX']={ -- Capcom VS SNK Pro USA PSX
+		hitstun=function() return memory.read_u8(0x06E6B3, "MainRAM") end,
+	},
+
 }
 
 local function get_game_tag()
