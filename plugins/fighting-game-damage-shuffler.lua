@@ -11,13 +11,14 @@ plugin.description =
 	-Capcom vs SNK Pro (USA)(PSX)
 	-Killer Instinct (USA)(SNES)
 	-Primal Rage (USA)(SNES)
-	-Street Fighter Alpha (USA)(PSX)*
-	-Street Fighter Alpha 2 (USA)(PSX)*
+	-Street Fighter Alpha (USA)(PSX)
+	-Street Fighter Alpha 2 (USA)(PSX)
+	-Street Fighter Alpha 2 Gold* (USA)(PSX)
 	-Street Fighter Alpha 3 (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
 	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
 
-	*Game does not swap when thrown/grabbed
+	*Part of Street Fighter Collection Disc 2
 	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
 ]]
 
@@ -61,15 +62,49 @@ local function hitstun_swap(gamemeta)
 	end
 end
 
+local function grab_swap(gamemeta)
+	return function(data)
+	-- To be used when grab needs a seperate address registered to activate the swap
+
+		local hitindicator = gamemeta.hitstun() --Thanks Kalimag
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+
+		if hitindicator == 1 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator >= 1 and grabindicator ~= previousgrab then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local gamedata = {
 	['SFA']={ -- Street Fighter Alpha USA PSX
 		hitstun=function() return memory.read_u8(0x187123, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x1873E2, "MainRAM") end,
+		func=grab_swap
 	},
 	['SFA2']={ -- Street Fighter Alpha 2 USA PSX
 		hitstun=function() return memory.read_u8(0x1981FE, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x19859B, "MainRAM") end,
+		func=grab_swap
+	},
+	['SFA2G']={ -- Street Fighter Alpha 2 Gold USA PSX
+		hitstun=function() return memory.read_u8(0x197622, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x18F19B, "MainRAM") end,
+		func=grab_swap
 	},
 	['SFA3']={ --Street Fighter Alpha 3 USA PSX
 		hitstun=function() return memory.read_u8(0x19D019, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x1944AF, "MainRAM") end,
+		func=grab_swap
 	},
 	['SFEX2PlusJP']={ --Street Fighter EX 2 Plus Japan PSX
 		hitstun=function() return memory.read_u8(0x1E9210, "MainRAM") end,
