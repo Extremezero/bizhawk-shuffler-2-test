@@ -44,3 +44,6 @@ luac.out
 *.x86_64
 *.hex
 /.vs
+/output-info/total-time.txt
+/output-info/current-time.txt
+/.gitignore
