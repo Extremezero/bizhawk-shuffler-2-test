@@ -13,6 +13,7 @@ plugin.description =
 	-Primal Rage (USA)(SNES)
 	-Darkstalkers 3 (USA)(PSX)
 	-Tekken 3 (USA)(PSX)
+	-Tekken 2 (USA)(PSX)
 	-JoJo's Bizzare Adventure (USA)(PSX)
 	-Psychic Force 2 (Japan)(PSX)
 	-Street Fighter Alpha (USA)(PSX)
@@ -144,6 +145,11 @@ local gamedata = {
 	['Tekken3']={ --Tekken 3 USA PSX
 		hitstun=function() return memory.read_u8(0x0A92A8, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x0AAB28, "MainRAM") end,
+		func=grab_swap
+	},
+	['Tekken2']={ --Tekken 2 USA PSX
+		hitstun=function() return memory.read_u8(0x0A1F68, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x0D1A6C, "MainRAM") end,
 		func=grab_swap
 	},
 	['JoJo']={ --JoJo's Bizzare Adventure USA PSX
