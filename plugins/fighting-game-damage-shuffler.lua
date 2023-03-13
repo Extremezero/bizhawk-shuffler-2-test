@@ -11,6 +11,10 @@ plugin.description =
 	-Capcom vs SNK Pro (USA)(PSX)
 	-Killer Instinct (USA)(SNES)
 	-Primal Rage (USA)(SNES)
+	-Darkstalkers 3 (USA)(PSX)
+	-Tekken 3 (USA)(PSX)
+	-JoJo's Bizzare Adventure (USA)(PSX)
+	-Psychic Force 2 (Japan)(PSX)
 	-Street Fighter Alpha (USA)(PSX)
 	-Street Fighter Alpha 2 (USA)(PSX)
 	-Street Fighter Alpha 2 Gold* (USA)(PSX)
@@ -85,7 +89,33 @@ local function grab_swap(gamemeta)
 	end
 end
 
+local function sf2_swap(gamemeta) --needs fixed. (Lua:103: attempt to compare number with nil)
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
+
+		local comboindicator = gamemeta.comboed()
+		local previouscombo = data.comboed
+
+		data.hitstun = hitindicator
+		data.comboed = comboindicator
+
+	
+		if hitindicator == 1 and comboed == 0 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local gamedata = {
+	['SSF2']={ -- Super Street Fighter 2 SNES USA
+		hitstun=function() return memory.read_u8(0x0594, "WRAM") end,
+		comboed=function() return memory.read_u8(0x0681, "WRAM") end,
+		func=sf2_swap
+	},
 	['SFA']={ -- Street Fighter Alpha USA PSX
 		hitstun=function() return memory.read_u8(0x187123, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x1873E2, "MainRAM") end,
@@ -105,6 +135,24 @@ local gamedata = {
 		hitstun=function() return memory.read_u8(0x19D019, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x1944AF, "MainRAM") end,
 		func=grab_swap
+	},
+	['DS3']={ --Darkstalkers 3 USA PSX
+		hitstun=function() return memory.read_u8(0x1C0F00, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x1C12C8, "MainRAM") end,
+		func=grab_swap
+	},
+	['Tekken3']={ --Tekken 3 USA PSX
+		hitstun=function() return memory.read_u8(0x0A92A8, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x0AAB28, "MainRAM") end,
+		func=grab_swap
+	},
+	['JoJo']={ --JoJo's Bizzare Adventure USA PSX
+		hitstun=function() return memory.read_u8(0x0CDAC6, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x0CD75A, "MainRAM") end,
+		func=grab_swap
+	},
+	['PsyForce2']={ --Psychic Force 2 Japan PSX
+		hitstun=function() return memory.read_u8(0x0D3EE8, "MainRAM") end,
 	},
 	['SFEX2PlusJP']={ --Street Fighter EX 2 Plus Japan PSX
 		hitstun=function() return memory.read_u8(0x1E9210, "MainRAM") end,
