@@ -90,7 +90,7 @@ local function grab_swap(gamemeta)
 	end
 end
 
-local function sf2_swap(gamemeta) --needs fixed. (Lua:103: attempt to compare number with nil)
+local function sf2_swap(gamemeta) --needs fixed. Swaps on end of combo and still swaps after first hit when still in hitstun. Still to get Grab address
 	return function(data)
 
 		local hitindicator = gamemeta.hitstun()
@@ -103,7 +103,7 @@ local function sf2_swap(gamemeta) --needs fixed. (Lua:103: attempt to compare nu
 		data.comboed = comboindicator
 
 	
-		if hitindicator == 1 and comboed == 0 then
+		if hitindicator == 1 and comboindicator == 0 then
 			return true
 			else
 			return false
@@ -113,7 +113,7 @@ end
 
 local gamedata = {
 	['SSF2']={ -- Super Street Fighter 2 SNES USA
-		hitstun=function() return memory.read_u8(0x0594, "WRAM") end,
+		hitstun=function() return memory.read_u8(0x1100, "WRAM") end,
 		comboed=function() return memory.read_u8(0x0681, "WRAM") end,
 		func=sf2_swap
 	},
