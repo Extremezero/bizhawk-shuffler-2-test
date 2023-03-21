@@ -23,12 +23,11 @@ plugin.description =
 	-Street Fighter EX2+ (JP)(USA)(PSX)
 	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
 	-Super Street Fighter II (USA)(PSX)***
-	-Street Fighter - The Movie (USA)(PSX)****
+	-Street Fighter - The Movie (USA)(PSX)
 
 	*Part of Street Fighter Collection Disc 2
 	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
-	***Game will swap twice when hit with a shoryuken.
-	****Game will swap after each round concludes except the final round. 
+	***Game will swap twice when hit with certain moves like shoryuken
 ]]
 
 local NO_MATCH = 'NONE'
@@ -94,27 +93,23 @@ local function grab_swap(gamemeta)
 	end
 end
 
-local function sf2_swap(gamemeta) --Note: SSF2 SNES swaps twice when hit by shoryuken. Tried player 1 health and hit detection addresses and still same issue. Possible need to find address that matches when player is knocked down state while in air to stop the swap.
+local function sf2_swap(gamemeta) --Note: SSF2 SNES swaps twice when hit with certain moves like shoryuken. Tried player 1 health and hit detection addresses and still same issue. Best I can figure out is increasing delay between swap to 20 frames instead of 10. Not best solution since it still swaps with shoryuken.
 	return function(data)
 
-		--local hitindicator = gamemeta.hitstun()
-		--local previoushit = data.hitstun
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
 
-		local P1health = gamemeta.health()
-		local previoushealth = data.health()
-		
 		local blockindicator = gamemeta.block()
 		
 		local comboindicator = gamemeta.comboed()
 		local previouscombo = data.comboed
 
-		--data.hitstun = hitindicator
+		data.hitstun = hitindicator
 		data.comboed = comboindicator
 		data.block = blockindicator
-		data.health = P1health
 
 	
-		if P1health ~= previoushealth and comboindicator == 0 and blockindicator == 0 then --hitindicator ~= previoushit
+		if comboindicator == 0 and blockindicator == 0 and hitindicator ~= previoushit then
 			return true
 			else
 			return false
@@ -122,11 +117,13 @@ local function sf2_swap(gamemeta) --Note: SSF2 SNES swaps twice when hit by shor
 	end
 end
 
-local function health_swap_SFTM(gamemeta) --Still swaping after the first round is concluded. Also still to find the address for blocking to avoid chip damage swapping the game
+local function health_swap_SFTM(gamemeta)
 	return function(data)
 
 		local P1health = gamemeta.health()
-		local previoushealth = data.health
+		local previoushealth = data.health or 0
+
+		local blockindicator = gamemeta.block()
 
 		local roundindicator = gamemeta.round()
 		local previousround = data.round
@@ -137,8 +134,11 @@ local function health_swap_SFTM(gamemeta) --Still swaping after the first round 
 		data.health = P1health
 		data.comboed = comboindicator
 		data.round = roundindicator
+		data.block = blockindicator
 	
-		if comboindicator == 0 and P1health ~= previoushealth and roundindicator == previousround then
+		if previoushealth < P1health then
+			return false 
+			elseif comboindicator == 0 and blockindicator == 0 and previoushealth ~= P1health and previousround == roundindicator then
 			return true
 			else
 			return false
@@ -157,6 +157,7 @@ local gamedata = {
 		health=function() return memory.read_u8(0x1B759A, "MainRAM") end,
 		comboed=function() return memory.read_u8(0x1B7639, "MainRAM") end,
 		round=function() return memory.read_u8(0x1E85FC, "MainRAM") end,
+		block=function() return memory.read_u8(0x1B75DD, "MainRAM") end,
 		func=health_swap_SFTM
 	},
 	['SFA']={ -- Street Fighter Alpha USA PSX
@@ -267,7 +268,7 @@ function plugin.on_frame(data, settings)
 	if swap_scheduled then return end
 
 	local schedule_swap, delay = shouldSwap(prevdata)
-	if schedule_swap and frames_since_restart > 10 then
+	if schedule_swap and frames_since_restart > 20 then
 		swap_game_delay(delay or 3)
 		swap_scheduled = true
 	end
