@@ -18,13 +18,17 @@ plugin.description =
 	-Psychic Force 2 (Japan)(PSX)
 	-Street Fighter Alpha (USA)(PSX)
 	-Street Fighter Alpha 2 (USA)(PSX)
-	-Street Fighter Alpha 2 Gold* (USA)(PSX)
+	-Street Fighter Alpha 2 Gold (USA)(PSX)*
 	-Street Fighter Alpha 3 (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
 	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
+	-Super Street Fighter II (USA)(PSX)***
+	-Street Fighter - The Movie (USA)(PSX)****
 
 	*Part of Street Fighter Collection Disc 2
 	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
+	***Game will swap twice when hit with a shoryuken.
+	****Game will swap after each round concludes except the final round. 
 ]]
 
 local NO_MATCH = 'NONE'
@@ -71,7 +75,7 @@ local function grab_swap(gamemeta)
 	return function(data)
 	-- To be used when grab needs a seperate address registered to activate the swap
 
-		local hitindicator = gamemeta.hitstun() --Thanks Kalimag
+		local hitindicator = gamemeta.hitstun() 
 		local previoushit = data.hitstun
 
 		local grabindicator = gamemeta.grabbed()
@@ -90,20 +94,51 @@ local function grab_swap(gamemeta)
 	end
 end
 
-local function sf2_swap(gamemeta) --needs fixed. Swaps on end of combo and still swaps after first hit when still in hitstun. Still to get Grab address
+local function sf2_swap(gamemeta) --Note: SSF2 SNES swaps twice when hit by shoryuken. Tried player 1 health and hit detection addresses and still same issue. Possible need to find address that matches when player is knocked down state while in air to stop the swap.
 	return function(data)
 
-		local hitindicator = gamemeta.hitstun()
-		local previoushit = data.hitstun
+		--local hitindicator = gamemeta.hitstun()
+		--local previoushit = data.hitstun
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health()
+		
+		local blockindicator = gamemeta.block()
+		
+		local comboindicator = gamemeta.comboed()
+		local previouscombo = data.comboed
+
+		--data.hitstun = hitindicator
+		data.comboed = comboindicator
+		data.block = blockindicator
+		data.health = P1health
+
+	
+		if P1health ~= previoushealth and comboindicator == 0 and blockindicator == 0 then --hitindicator ~= previoushit
+			return true
+			else
+			return false
+		end
+	end
+end
+
+local function health_swap_SFTM(gamemeta) --Still swaping after the first round is concluded. Also still to find the address for blocking to avoid chip damage swapping the game
+	return function(data)
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health
+
+		local roundindicator = gamemeta.round()
+		local previousround = data.round
 
 		local comboindicator = gamemeta.comboed()
 		local previouscombo = data.comboed
 
-		data.hitstun = hitindicator
+		data.health = P1health
 		data.comboed = comboindicator
-
+		data.round = roundindicator
 	
-		if hitindicator == 1 and comboindicator == 0 then
+		if comboindicator == 0 and P1health ~= previoushealth and roundindicator == previousround then
 			return true
 			else
 			return false
@@ -113,9 +148,16 @@ end
 
 local gamedata = {
 	['SSF2']={ -- Super Street Fighter 2 SNES USA
-		hitstun=function() return memory.read_u8(0x1100, "WRAM") end,
+		hitstun=function() return memory.read_u8(0x1866, "WRAM") end,
 		comboed=function() return memory.read_u8(0x0681, "WRAM") end,
+		block=function() return memory.read_u8(0x0543, "WRAM") end,
 		func=sf2_swap
+	},
+	['SFTM']={ -- Street Fighter The Movie PSX USA
+		health=function() return memory.read_u8(0x1B759A, "MainRAM") end,
+		comboed=function() return memory.read_u8(0x1B7639, "MainRAM") end,
+		round=function() return memory.read_u8(0x1E85FC, "MainRAM") end,
+		func=health_swap_SFTM
 	},
 	['SFA']={ -- Street Fighter Alpha USA PSX
 		hitstun=function() return memory.read_u8(0x187123, "MainRAM") end,
