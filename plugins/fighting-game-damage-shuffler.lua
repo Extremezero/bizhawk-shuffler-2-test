@@ -57,7 +57,7 @@ local function hitstun_swap(gamemeta)
 	return function(data)
 	-- To be used when address value registers a single hit example: value of 1 = 1 hit ingame.
 
-		local hitindicator = gamemeta.hitstun() --Thanks Kalimag
+		local hitindicator = gamemeta.hitstun()
 
 		local previoushit = data.hitstun
 		data.hitstun = hitindicator
@@ -146,6 +146,25 @@ local function health_swap_SFTM(gamemeta)
 	end
 end
 
+local function xmen_swap(gamemeta) -- Note: Address for hitstun will still have the value of 1 hang around for a second before it turns back to the value of 0 after a hit. This means that player 2 can hit player 1 multiple times out of a combo and not trigger the swap.
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun()
+
+		local previoushit = data.hitstun
+		data.hitstun = hitindicator
+
+		if hitindicator == 1 and previoushit == 1 then
+			hitindicator = 0  
+			previoushit = 0 end
+		if hitindicator == 1 and previoushit == 0 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local gamedata = {
 	['SSF2']={ -- Super Street Fighter 2 SNES USA
 		hitstun=function() return memory.read_u8(0x1866, "WRAM") end,
@@ -220,6 +239,10 @@ local gamedata = {
 	},
 	['CVSProPSX']={ -- Capcom VS SNK Pro USA PSX
 		hitstun=function() return memory.read_u8(0x06E6B3, "MainRAM") end,
+	},
+	['Xmen1']={ -- X-Men Mutant Academy
+		hitstun=function() return memory.read_u8(0x0A245A, "MainRAM") end,
+		func=xmen_swap
 	},
 
 }
