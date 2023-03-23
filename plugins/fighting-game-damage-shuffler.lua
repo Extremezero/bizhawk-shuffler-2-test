@@ -20,10 +20,12 @@ plugin.description =
 	-Street Fighter Alpha 2 (USA)(PSX)
 	-Street Fighter Alpha 2 Gold (USA)(PSX)*
 	-Street Fighter Alpha 3 (USA)(PSX)
+	-Street Fighter EX Plus Alpha (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
 	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
 	-Super Street Fighter II (USA)(PSX)
 	-Street Fighter - The Movie (USA)(PSX)
+	-Star Gladiator - Episode 1 - Final Crusade (USA)(PSX)
 
 	*Part of Street Fighter Collection Disc 2
 	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
@@ -83,6 +85,29 @@ local function grab_swap(gamemeta)
 		data.grabbed = grabindicator
 
 		if hitindicator == 1 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator >= 1 and grabindicator ~= previousgrab then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+local function EXgrab_swap(gamemeta)
+	return function(data)
+	-- To be used when grab needs a seperate address registered to activate the swap
+
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+
+		if grabindicator == 0 and hitindicator == 1 and hitindicator ~= previoushit then
 			return true 
 			elseif grabindicator >= 1 and grabindicator ~= previousgrab then
 			return true
@@ -175,6 +200,27 @@ local function xmen_swap(gamemeta)
 	end
 end
 
+local function star_swap(gamemeta)
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
+
+		local backuphit = gamemeta.backup()
+
+		data.backup = backuphit
+		data.hitstun = hitindicator
+
+		if hitindicator == 1 and hitindicator ~= previoushit then
+			return true
+			elseif backup == 2 and hitindicator == 0 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local gamedata = {
 	['SSF2']={ -- Super Street Fighter 2 SNES USA
 		hitstun=function() return memory.read_u8(0x10E0, "WRAM") end,
@@ -233,6 +279,11 @@ local gamedata = {
 		grabbed=function() return memory.read_u8(0x0CD75A, "MainRAM") end,
 		func=grab_swap
 	},
+	['SFEX+@']={ --Street Fighter EX Plus Alpha USA PSX
+		hitstun=function() return memory.read_u8(0x1D63C0, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x1D63BB, "MainRAM") end,
+		func=EXgrab_swap
+	},
 	['PsyForce2']={ --Psychic Force 2 Japan PSX
 		hitstun=function() return memory.read_u8(0x0D3EE8, "MainRAM") end,
 	},
@@ -259,7 +310,12 @@ local gamedata = {
 		comboed=function() return memory.read_u8(0x0A245A, "MainRAM") end,
 		func=xmen_swap
 	},
-
+	['StarGlad']={ -- Star Gladiator
+		hitstun=function() return memory.read_u8(0x1C70D3, "MainRAM") end,
+		backup=function() return memory.read_u8(0x1D7E17, "MainRAM") end,
+		func=star_swap
+	},
+	
 }
 
 local function get_game_tag()
