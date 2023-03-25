@@ -23,12 +23,19 @@ plugin.description =
 	-Street Fighter EX Plus Alpha (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
 	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
-	-Super Street Fighter II (USA)(PSX)
+	-Super Street Fighter II (USA)(SNES)
 	-Street Fighter - The Movie (USA)(PSX)
 	-Star Gladiator - Episode 1 - Final Crusade (USA)(PSX)
+	-Guilty Gear (v1.0)(USA)(PSX)***
+	-Gundam - The Battle Master (Japan)(PSX)****
+	-Gundam - The Battle Master 2 (Japan)(PSX)
+	-Kensei - Sacred Fist (USA)(PSX)
+	-The King of Fighters '95 (USA)(PSX)
 
 	*Part of Street Fighter Collection Disc 2
 	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
+	***Grabbing does not swap
+	****No Combo Indicator so this will swap with each hit regardless
 ]]
 
 local NO_MATCH = 'NONE'
@@ -221,6 +228,131 @@ local function star_swap(gamemeta)
 	end
 end
 
+local function gundam_battle_swap(gamemeta) -- There is absolutely a better way of doing this but it works for now.
+	return function(data)
+		
+		local hitindicator1 = gamemeta.hitstun1()
+		local hitindicator2 = gamemeta.hitstun2()
+		local hitindicator3 = gamemeta.hitstun3()
+		local hitindicator4 = gamemeta.hitstun4()
+		local hitindicator5 = gamemeta.hitstun5()
+		local hitindicator6 = gamemeta.hitstun6()
+		local hitindicator7 = gamemeta.hitstun7()
+		local hitindicator8 = gamemeta.hitstun8()
+		local hitindicator9 = gamemeta.hitstun9()
+		local hitindicator10 = gamemeta.hitstun10()
+		local hitindicator11 = gamemeta.hitstun11()
+		local hitindicator12 = gamemeta.hitstun12()
+		local hitindicator13 = gamemeta.hitstun13()
+		local hitindicator14 = gamemeta.hitstun14()
+		local hitindicator15 = gamemeta.hitstun15()
+		local hitindicator16 = gamemeta.hitstun16()
+		local hitindicator17 = gamemeta.hitstun17()
+		local hitindicator18 = gamemeta.hitstun18()
+		local hitindicator19 = gamemeta.hitstun19()
+		local hitindicator20 = gamemeta.hitstun20()
+		local hitindicator21 = gamemeta.hitstun21()
+		local hitindicator22 = gamemeta.hitstun22()
+		local hitindicator23 = gamemeta.hitstun23()
+		local hitindicator24 = gamemeta.hitstun24()
+		local hitindicator25 = gamemeta.hitstun25()
+		local hitindicator26 = gamemeta.hitstun26()
+		local hitindicator27 = gamemeta.hitstun27()
+		local hitindicator28 = gamemeta.hitstun28()
+
+		data.hitstun1 = hitindicator1
+		data.hitstun2 = hitindicator2
+		data.hitstun3 = hitindicator3
+		data.hitstun4 = hitindicator4
+		data.hitstun5 = hitindicator5
+		data.hitstun6 = hitindicator6
+		data.hitstun7 = hitindicator7
+		data.hitstun8 = hitindicator8
+		data.hitstun9 = hitindicator9
+		data.hitstun10 = hitindicator10
+		data.hitstun11 = hitindicator11
+		data.hitstun12 = hitindicator12
+		data.hitstun13 = hitindicator13
+		data.hitstun14 = hitindicator14
+		data.hitstun15 = hitindicator15
+		data.hitstun16 = hitindicator16
+		data.hitstun17 = hitindicator17
+		data.hitstun18 = hitindicator18
+		data.hitstun19 = hitindicator19
+		data.hitstun20 = hitindicator20
+		data.hitstun21 = hitindicator21
+		data.hitstun22 = hitindicator22
+		data.hitstun23 = hitindicator23
+		data.hitstun24 = hitindicator24
+		data.hitstun25 = hitindicator25
+		data.hitstun26 = hitindicator26
+		data.hitstun27 = hitindicator27
+		data.hitstun28 = hitindicator28
+
+			if hitindicator1 == 9 then
+			return true
+			elseif hitindicator2 == 9 then
+			return true
+			elseif hitindicator3 == 9 then
+			return true
+			elseif hitindicator4 == 9 then
+			return true
+			elseif hitindicator5 == 9 then
+			return true
+			elseif hitindicator6 == 9 then
+			return true
+			elseif hitindicator7 == 9 then
+			return true
+			elseif hitindicator8 == 9 then
+			return true
+			elseif hitindicator9 == 9 then
+			return true
+			elseif hitindicator10 == 9 then
+			return true
+			elseif hitindicator11 == 9 then
+			return true
+			elseif hitindicator12 == 9 then
+			return true
+			elseif hitindicator13 == 9 then
+			return true
+			elseif hitindicator14 == 9 then
+			return true
+			elseif hitindicator15 == 9 then
+			return true
+			elseif hitindicator16 == 9 then
+			return true
+			elseif hitindicator17 == 9 then
+			return true
+			elseif hitindicator18 == 9 then
+			return true
+			elseif hitindicator19 == 9 then
+			return true
+			elseif hitindicator20 == 9 then
+			return true
+			elseif hitindicator21 == 9 then
+			return true
+			elseif hitindicator22 == 9 then
+			return true
+			elseif hitindicator23 == 9 then
+			return true
+			elseif hitindicator24 == 9 then
+			return true
+			elseif hitindicator25 == 9 then
+			return true
+			elseif hitindicator26 == 9 then
+			return true
+			elseif hitindicator27 == 9 then
+			return true
+			elseif hitindicator28 == 9 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+
+
 local gamedata = {
 	['SSF2']={ -- Super Street Fighter 2 SNES USA
 		hitstun=function() return memory.read_u8(0x10E0, "WRAM") end,
@@ -310,12 +442,62 @@ local gamedata = {
 		comboed=function() return memory.read_u8(0x0A245A, "MainRAM") end,
 		func=xmen_swap
 	},
-	['StarGlad']={ -- Star Gladiator
+	['Xmen2']={ -- X-Men Mutant Academy 2
+		hitstun=function() return memory.read_u8(0x0AE512, "MainRAM") end,
+		comboed=function() return memory.read_u8(0x0AE52A, "MainRAM") end,
+		func=xmen_swap
+	},
+	['StarGlad']={ -- Star Gladiator PSX
 		hitstun=function() return memory.read_u8(0x1C70D3, "MainRAM") end,
 		backup=function() return memory.read_u8(0x1D7E17, "MainRAM") end,
 		func=star_swap
 	},
-	
+	['GGv1']={ --Guilty Gear v1.00 PSX USA
+		hitstun=function() return memory.read_u8(0x07C9DE, "MainRAM") end, --While finding addresses to indicate grabbing is easy, getting them to work is a pain since the same address also share the same value for blocking and certain hits. Will require tons of effort to find an address or values that is unique to grabs only for all chars.
+	},
+	['GundamBattleM1']={ -- Gundam - The Battle Master (Japan)(PSX)
+		hitstun1=function() return memory.read_u8(0x11A208, "MainRAM") end,
+		hitstun2=function() return memory.read_u8(0x11A230, "MainRAM") end,
+		hitstun3=function() return memory.read_u8(0x11A258, "MainRAM") end,
+		hitstun4=function() return memory.read_u8(0x11A280, "MainRAM") end,
+		hitstun5=function() return memory.read_u8(0x11A2A8, "MainRAM") end,
+		hitstun6=function() return memory.read_u8(0x11A2D0, "MainRAM") end,
+		hitstun7=function() return memory.read_u8(0x11A2F8, "MainRAM") end,
+		hitstun8=function() return memory.read_u8(0x11A320, "MainRAM") end,
+		hitstun9=function() return memory.read_u8(0x11A348, "MainRAM") end,
+		hitstun10=function() return memory.read_u8(0x11A370, "MainRAM") end,
+		hitstun11=function() return memory.read_u8(0x11A398, "MainRAM") end,
+		hitstun12=function() return memory.read_u8(0x11A3C0, "MainRAM") end,
+		hitstun13=function() return memory.read_u8(0x11A3E8, "MainRAM") end,
+		hitstun14=function() return memory.read_u8(0x11A410, "MainRAM") end,
+		hitstun15=function() return memory.read_u8(0x11A438, "MainRAM") end,
+		hitstun16=function() return memory.read_u8(0x11A460, "MainRAM") end,
+		hitstun17=function() return memory.read_u8(0x11A488, "MainRAM") end,
+		hitstun18=function() return memory.read_u8(0x11A4B0, "MainRAM") end,
+		hitstun19=function() return memory.read_u8(0x11A4D8, "MainRAM") end,
+		hitstun20=function() return memory.read_u8(0x11A500, "MainRAM") end,
+		hitstun21=function() return memory.read_u8(0x11A528, "MainRAM") end,
+		hitstun22=function() return memory.read_u8(0x11A550, "MainRAM") end,
+		hitstun23=function() return memory.read_u8(0x11A578, "MainRAM") end,
+		hitstun24=function() return memory.read_u8(0x11A5A0, "MainRAM") end,
+		hitstun25=function() return memory.read_u8(0x11A5C8, "MainRAM") end,
+		hitstun26=function() return memory.read_u8(0x11A5F0, "MainRAM") end,
+		hitstun27=function() return memory.read_u8(0x11A618, "MainRAM") end,
+		hitstun28=function() return memory.read_u8(0x11A640, "MainRAM") end,
+		hitstat=function() return memory.read_u8(0x11A2F3, "MainRAM") end,
+		func=gundam_battle_swap
+	},
+	['GundamBattleM2']={ -- Gundam - The Battle Master 2 (Japan)(PSX)
+		hitstun=function() return memory.read_u8(0x175AD2, "MainRAM") end,
+	},
+	['Kensei']={ -- Kensei - Sacred Fist (USA)(PSX)
+		hitstun=function() return memory.read_u8(0x0AE3D0, "MainRAM") end,
+	},
+	['KOF95PSX']={ -- The King of Fighters '95 (USA)(PSX)
+		hitstun=function() return memory.read_u8(0x08871F, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x08B5C0, "MainRAM") end,
+		func=grab_swap
+	},
 }
 
 local function get_game_tag()
