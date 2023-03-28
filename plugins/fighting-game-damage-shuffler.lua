@@ -107,6 +107,30 @@ local function grab_swap(gamemeta)
 	end
 end
 
+local function grab_swap_reverse_hit(gamemeta)
+	return function(data)
+	-- To be used when grab needs a seperate address registered to activate the swap and hit indication is 0 instead of 1
+
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+
+		if hitindicator == 0 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator >= 1 and grabindicator ~= previousgrab then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+
 local function EXgrab_swap(gamemeta)
 	return function(data)
 	-- To be used when grab needs a seperate address registered to activate the swap
@@ -457,6 +481,11 @@ local gamedata = {
 		grabbed=function() return memory.read_u8(0x19859B, "MainRAM") end,
 		func=grab_swap
 	},
+	['SFA2Rev1']={ -- Street Fighter Alpha 2 USA PSX Rev 1
+		hitstun=function() return memory.read_u8(0x19820A, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x1985A7, "MainRAM") end,
+		func=grab_swap
+	},
 	['SFA2G']={ -- Street Fighter Alpha 2 Gold USA PSX
 		hitstun=function() return memory.read_u8(0x197622, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x18F19B, "MainRAM") end,
@@ -478,9 +507,9 @@ local gamedata = {
 		func=grab_swap
 	},
 	['Tekken2']={ --Tekken 2 USA PSX
-		hitstun=function() return memory.read_u8(0x0A1F68, "MainRAM") end,
+		hitstun=function() return memory.read_u8(0x0B8894, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x0D1A6C, "MainRAM") end,
-		func=grab_swap
+		func=grab_swap_reverse_hit
 	},
 	['JoJo']={ --JoJo's Bizzare Adventure USA PSX
 		hitstun=function() return memory.read_u8(0x0CDAC6, "MainRAM") end,
