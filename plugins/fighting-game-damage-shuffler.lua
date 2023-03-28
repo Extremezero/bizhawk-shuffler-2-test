@@ -15,27 +15,33 @@ plugin.description =
 	-Tekken 3 (USA)(PSX)
 	-Tekken 2 (USA)(PSX)
 	-JoJo's Bizzare Adventure (USA)(PSX)
-	-Psychic Force 2 (Japan)(PSX)
+	-Psychic Force 2 (JP)(PSX)
 	-Street Fighter Alpha (USA)(PSX)
 	-Street Fighter Alpha 2 (USA)(PSX)
-	-Street Fighter Alpha 2 Gold (USA)(PSX)*
+	-Street Fighter Alpha 2 Gold (USA)(PSX)(%)
 	-Street Fighter Alpha 3 (USA)(PSX)
 	-Street Fighter EX Plus Alpha (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
-	-Street Fighter III: 4rd Strike Hack (Japan)(NO CD)(Not Recommended)**
-	-Super Street Fighter II (USA)(SNES)
+	-Street Fighter III: 4rd Strike Hack (JP)(NO CD)(Not Recommended)(**)
+	-Street Fighter II: The World Warrior (USA)(PSX)($)(*)
+	-Street Fighter II': Champion Edition (USA)(PSX)($)(*)
+	-Street Fighter II' Turbo: Hyper Fighting (USA)(PSX)($)(*)
+	-Super Street Fighter II: The New Challengers (USA)(SNES)(PSX)(£)
+	-Super Street Fighter II Turbo (USA)(PSX)(£)
 	-Street Fighter - The Movie (USA)(PSX)
 	-Star Gladiator - Episode 1 - Final Crusade (USA)(PSX)
-	-Guilty Gear (v1.0)(USA)(PSX)***
-	-Gundam - The Battle Master (Japan)(PSX)****
+	-Guilty Gear (v1.0)(USA)(PSX)(***)
+	-Gundam - The Battle Master (Japan)(PSX)(*)
 	-Gundam - The Battle Master 2 (Japan)(PSX)
 	-Kensei - Sacred Fist (USA)(PSX)
-	-The King of Fighters '95 (USA)(PSX)
+	-The King of Fighters '95 (USA)(PSX)(*)
 
-	*Part of Street Fighter Collection Disc 2
-	**CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
-	***Grabbing does not swap
-	****No Combo Indicator so this will swap with each hit regardless
+	(£)Part of Street Fighter Collection Disc 1 PSX
+	(%)Part of Street Fighter Collection Disc 2 PSX
+	($)Part of Street Fighter Collection 2 PSX
+	(*)No Combo Indicator so this will swap with each hit regardless
+	(**)CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
+	(***)Grabbing does not swap
 ]]
 
 local NO_MATCH = 'NONE'
@@ -124,7 +130,7 @@ local function EXgrab_swap(gamemeta)
 	end
 end
 
-local function sf2_swap(gamemeta)
+local function sf2snes_swap(gamemeta)
 	return function(data)
 
 		local hitindicator = gamemeta.hitstun()
@@ -136,7 +142,10 @@ local function sf2_swap(gamemeta)
 		local blockindicator = gamemeta.block()
 		local airindicator = gamemeta.airstate()
 		local P1health = gamemeta.health()
+
 		local hitbackup = gamemeta.backup()
+		local previousbackup = data.backup
+
 		
 		local comboindicator = gamemeta.comboed()
 		local previouscombo = data.comboed
@@ -149,12 +158,79 @@ local function sf2_swap(gamemeta)
 		data.health = P1health
 		data.backup = hitbackup
 	
-		if comboindicator == 0 and blockindicator == 0 and airindicator >= 1 and hitbackup == 1 and hitindicator ~= previoushit or grabindicator == 1 and grabindicator ~= previousgrab then
+			if P1health > 0 and comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit or grabindicator == 1 and grabindicator ~= previousgrab then --P1health > 0 and hitbackup == 1 and hitbackup ~= previousbackup
 			return true
-			elseif airindicator == 0 and frames_since_restart > 40 then
-			return false
+			-- airindicator == 0 and frames_since_restart > 40 then
+			-- return false
 			else
 			return false
+		end
+	end
+end
+
+local function sf2coll_swap(gamemeta)
+	return function(data)
+		
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		local hitbackup = gamemeta.backup() --Hadokens need a seperate address to indicate a clean hit
+		local previousbackup = data.backup
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health
+		local blockindicator = gamemeta.block()
+		--local blockstatus{3, 4} 
+
+		data.hitstun = hitindicator
+		data.backup = hitbackup
+		data.health = P1health
+		data.block = blockindicator
+		data.grabbed = grabindicator
+
+
+				if P1health > 0 and blockindicator ~= 3 and blockindicator ~= 4 and hitindicator >= 1 and hitindicator ~= previoushit or P1health > 0 and hitbackup == 1 and hitbackup ~= previousbackup or P1health > 0 and grabindicator == 1 and grabindicator ~= previousgrab then
+				return true
+				else
+				return false
+		end
+	end
+end
+
+local function supersf2coll_swap(gamemeta)
+	return function(data)
+		
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		local hitbackup = gamemeta.backup() --Hadokens need a seperate address to indicate a clean hit
+		local previousbackup = data.backup
+		
+		local comboindicator = gamemeta.comboed()
+		local previouscombo = data.comboed
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health
+		local blockindicator = gamemeta.block()
+		--local blockstatus{3, 4} 
+
+		data.hitstun = hitindicator
+		data.backup = hitbackup
+		data.health = P1health
+		data.block = blockindicator
+		data.grabbed = grabindicator
+
+
+				if P1health > 0 and comboindicator == 0 and blockindicator ~= 3 and blockindicator ~= 4 and hitindicator >= 1 and hitindicator ~= previoushit or P1health > 0 and hitbackup == 1 and hitbackup ~= previousbackup and comboindicator == 0 or P1health > 0 and grabindicator == 1 and grabindicator ~= previousgrab then
+				return true
+				else
+				return false
 		end
 	end
 end
@@ -213,7 +289,7 @@ local function star_swap(gamemeta)
 		local hitindicator = gamemeta.hitstun()
 		local previoushit = data.hitstun
 
-		local backuphit = gamemeta.backup()
+		local backuphit = gamemeta.backup() --Hits that swap characters around to otherside wasn't triggering the swap, this is a remedy for it. 
 
 		data.backup = backuphit
 		data.hitstun = hitindicator
@@ -354,15 +430,15 @@ end
 
 
 local gamedata = {
-	['SSF2']={ -- Super Street Fighter 2 SNES USA
-		hitstun=function() return memory.read_u8(0x10E0, "WRAM") end,
+	['SSF2Snes']={ -- Super Street Fighter 2 SNES USA
+		hitstun=function() return memory.read_u8(0x0594, "WRAM") end, --001100
 		comboed=function() return memory.read_u8(0x0681, "WRAM") end,
 		block=function() return memory.read_u8(0x0543, "WRAM") end,
 		airstate=function() return memory.read_u8(0x053C, "WRAM") end,
 		grabbed=function() return memory.read_u8(0x07DC, "WRAM") end,
 		health=function() return memory.read_u8(0x0636, "WRAM") end,
-		backup=function() return memory.read_u8(0x1866, "WRAM") end,
-		func=sf2_swap
+		backup=function() return memory.read_u8(0x1949, "WRAM") end, --alt 1866
+		func=sf2snes_swap
 	},
 	['SFTM']={ -- Street Fighter The Movie PSX USA
 		health=function() return memory.read_u8(0x1B759A, "MainRAM") end,
@@ -497,6 +573,23 @@ local gamedata = {
 		hitstun=function() return memory.read_u8(0x08871F, "MainRAM") end,
 		grabbed=function() return memory.read_u8(0x08B5C0, "MainRAM") end,
 		func=grab_swap
+	},
+	['SF2Coll2PSX']={ -- Street Fighter Collection 2 USA PSX
+		hitstun=function() return memory.read_u8(0x16BEC9, "MainRAM") end,
+		health=function() return memory.read_u8(0x16BFC0, "MainRAM") end,
+		block=function() return memory.read_u8(0x16BECA, "MainRAM") end,
+		backup=function() return memory.read_u8(0x1C2605, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x16C1ED, "MainRAM") end,
+		func=sf2coll_swap
+	},
+	['SF2CollPSX']={ -- Street Fighter Collection Disc 1 USA PSX
+		hitstun=function() return memory.read_u8(0x175109, "MainRAM") end,
+		health=function() return memory.read_u8(0x1751FC, "MainRAM") end,
+		block=function() return memory.read_u8(0x17510A, "MainRAM") end,
+		backup=function() return memory.read_u8(0x1C0989, "MainRAM") end,
+		grabbed=function() return memory.read_u8(0x17548D, "MainRAM") end,
+		comboed=function() return memory.read_u8(0x175238, "MainRAM") end,
+		func=supersf2coll_swap
 	},
 }
 
