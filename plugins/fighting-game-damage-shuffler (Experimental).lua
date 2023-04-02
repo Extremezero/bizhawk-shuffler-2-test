@@ -644,7 +644,7 @@ function get_name_from_name_db(target, database)
 	local findname = io.open(database, 'r')
 	
 	for file in findname:lines() do
-		local name, tag = file:match("(.+)%s+(%S+)")
+		local name, tag = file:match("^(.+)%s-(%S-)$") --("(.+)%s+(%S+)")
 		if name == target then represent = tag; break end
 		foundromname = 1
 		end
@@ -654,19 +654,16 @@ end
 
 
 local function get_game_tag()
-	-- What should happen is that if there is no hash or tag in fighting-hashes.db, that tagfromhash would be given the value of tagfromname 
-	local tagfromhash = get_tag_from_hash_db(gameinfo.getromhash(), 'plugins/fighting-hashes.dat')
-	local tagfromname = get_name_from_name_db(gameinfo.getromname(), 'plugins/fighting-names.dat')
+	-- What should happen is that if there is no hash or tag in fighting-hashes.db, that tag would be given the value of tagname 
+	local tag = get_tag_from_hash_db(gameinfo.getromhash(), 'plugins/fighting-hashes.dat')
+	local tagname = get_name_from_name_db(gameinfo.getromname(), 'plugins/fighting-names.dat')
 	
-	if tagfromhash ~= nil and gamedata[tag] ~= nil then return tagfromhash
-		else if tagfromhash == nil and gamedata[tag] ~= nil then 
-		tagfromname = tagfromhash
-		return tagfromhash
+	if tag ~= nil and gamedata[tag] ~= nil then return tag
+		else if tag == nil and gamedata[tag] ~= nil then 
+		tagname = tag
+		return tag
 		end
-	-- check to see if any of the rom name samples match
-	--local name = gameinfo.getromname()
-	--for _,check in pairs(backupchecks) do
-		--if check.test() then return check.tag end
+
 	end
 
 	return nil
@@ -681,9 +678,7 @@ function plugin.on_game_load(data, settings)
 	swap_scheduled = false
 	shouldSwap = function() return false end
 
-	local tag = get_game_tag()
-	--local tag = data.tags[gameinfo.getromhash()] or get_game_tag()
-	--data.tags[gameinfo.getromhash()] = tag or NO_MATCH
+	local tag = data.tags[gameinfo.getromhash()] or data.tags[gameinfo.getromname()] or get_game_tag()
 		if foundromname == 1 then
 		data.tags[gameinfo.getromname()] = tag or NO_MATCH
 		else
