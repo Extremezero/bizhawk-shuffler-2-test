@@ -628,16 +628,6 @@ local gamedata = {
 	},
 }
 
---local backupchecks = {
-	--['Marvel Super Heroes (Japan)'] = 'MSHVSFSat',
-	--['X-Men vs. Street Fighter (Japan) (1M)'] = 'XMENVSSFSat',}
-
---Because all non-psx games give the hash of no data currently, the idea is to find the romname instead. 
---Could try getting the name from the same db as the hashes but will need to rename the PSX romnames in the hash db to not conflict with other ports. 
---or could just go with two databases, one for the hashes and one for the romnames when no hash is provided in hash db
---Uh...way over my head with this one
-
-
 function get_name_from_name_db(target, database)
 	local represent = nil
 	local findname = io.open(database, 'r')
