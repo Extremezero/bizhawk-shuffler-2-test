@@ -639,14 +639,12 @@ local gamedata = {
 
 
 function get_name_from_name_db(target, database)
-	foundromname = nil
 	local represent = nil
 	local findname = io.open(database, 'r')
 	
 	for file in findname:lines() do
-		local name, tag = file:match("^(.+)%s-(%S-)$") --("(.+)%s+(%S+)")
+		local name, tag = file:match("^(.+)%s+(%S+)$") --("(.+)%s+(%S+)")
 		if name == target then represent = tag; break end
-		foundromname = 1
 		end
 		findname:close()
 		return represent
@@ -654,19 +652,22 @@ end
 
 
 local function get_game_tag()
-	-- What should happen is that if there is no hash or tag in fighting-hashes.db, that tag would be given the value of tagname 
 	local tag = get_tag_from_hash_db(gameinfo.getromhash(), 'plugins/fighting-hashes.dat')
-	local tagname = get_name_from_name_db(gameinfo.getromname(), 'plugins/fighting-names.dat')
 	
-	if tag ~= nil and gamedata[tag] ~= nil then return tag
-		else if tag == nil and gamedata[tag] ~= nil then 
-		tagname = tag
+	if tag ~= nil and gamedata[tag] ~= nil then 
+		return tag
+		end
+		return nil
+end
+
+local function get_game_tag_from_name()
+	local tag = get_name_from_name_db(gameinfo.getromname(), 'plugins/fighting-names.dat')
+	
+	if tag ~= nil and gamedata[tag] ~= nil then
 		return tag
 		end
 
-	end
-
-	return nil
+		return nil
 end
 
 function plugin.on_setup(data, settings)
@@ -678,13 +679,12 @@ function plugin.on_game_load(data, settings)
 	swap_scheduled = false
 	shouldSwap = function() return false end
 
-	local tag = data.tags[gameinfo.getromhash()] or data.tags[gameinfo.getromname()] or get_game_tag()
-		if foundromname == 1 then
-		data.tags[gameinfo.getromname()] = tag or NO_MATCH
-		else
+	local tag = data.tags[gameinfo.getromhash()] or data.tags[gameinfo.getromname()] or get_game_tag() or get_game_tag_from_name()
+		if get_game_tag() ~= nil then
 		data.tags[gameinfo.getromhash()] = tag or NO_MATCH
+		elseif get_game_tag_from_name() ~= nil then
+		data.tags[gameinfo.getromname()] = tag or NO_MATCH
 		end
-
 	-- first time through with a bad match, tag will be nil
 	-- can use this to print a debug message only the first time
 	if tag ~= nil and tag ~= NO_MATCH then
