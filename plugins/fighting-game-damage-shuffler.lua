@@ -1,7 +1,7 @@
 local plugin = {}
 
 plugin.name = "Fighting Game Hit Shuffler"
-plugin.author = "authorblues, kalimag, Extreme0"
+plugin.author = "Extreme0, authorblues, kalimag"
 plugin.settings = {}
 plugin.description =
 [[
@@ -35,6 +35,10 @@ plugin.description =
 	-Gundam - The Battle Master 2 (Japan)(PSX)
 	-Kensei - Sacred Fist (USA)(PSX)
 	-The King of Fighters '95 (USA)(PSX)(*)
+	-Marvel Super Heroes vs Street Fighter (JP)(Saturn)
+	-X-Men vs. Street Fighter (JP)(Saturn)(1M, 2M, 3M)
+	-X-Men - Children of the Atom (JP, USA, Europe 2S & 3S)(Saturn)
+	-Virtua Fighter 2 (USA)(Saturn)
 
 	(£)Part of Street Fighter Collection Disc 1 PSX
 	(%)Part of Street Fighter Collection Disc 2 PSX
@@ -207,7 +211,7 @@ local function sf2coll_swap(gamemeta)
 		local P1health = gamemeta.health()
 		local previoushealth = data.health
 		local blockindicator = gamemeta.block()
-		--local blockstatus{3, 4} 
+		
 
 		data.hitstun = hitindicator
 		data.backup = hitbackup
@@ -242,7 +246,7 @@ local function supersf2coll_swap(gamemeta)
 		local P1health = gamemeta.health()
 		local previoushealth = data.health
 		local blockindicator = gamemeta.block()
-		--local blockstatus{3, 4} 
+		
 
 		data.hitstun = hitindicator
 		data.backup = hitbackup
@@ -451,7 +455,33 @@ local function gundam_battle_swap(gamemeta) -- Making sure this works at least, 
 	end
 end
 
+local function virtua_fighter2_swap(gamemeta)
+	return function(data)
 
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		local ringoutindicator = gamemeta.ringout()
+		local previousringout = data.ringout
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+		data.ringout = ringoutindicator
+
+		if hitindicator == 1 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator == 6 and grabindicator ~= previousgrab then
+			return true
+			elseif ringoutindicator == 1 and ringoutindicator ~= previousringout then
+			return true
+			else
+			return false
+		end
+	end
+end
 
 local gamedata = {
 	['SSF2Snes']={ -- Super Street Fighter 2 SNES USA
@@ -626,23 +656,46 @@ local gamedata = {
 	['XMENVSSFSat']={ -- X-Men vs Street Fighter Saturn Japan
 		hitstun=function() return memory.read_u8(0x0F4511, "Work Ram High") end,
 	},
+	['XMENChildrenSat']={ -- X-Men - Children of the Atom
+		hitstun=function() return memory.read_u8(0x0E4511, "Work Ram High") end,
+	},
+	['VF2Sat']={ -- Virtua Fighter 2
+		hitstun=function() return memory.read_u8(0x0626E7, "Work Ram High") end,
+		grabbed=function() return memory.read_u8(0x0FA1A1, "Work Ram High") end,
+		ringout=function() return memory.read_u8(0x06262E, "Work Ram High") end,
+	},
 }
 
-local backupchecks = {
-}
+function get_name_from_name_db(target, database)
+	local represent = nil
+	local findname = io.open(database, 'r')
+	
+	for file in findname:lines() do
+		local name, tag = file:match("^(.+)%s+(%S+)$") --("(.+)%s+(%S+)")
+		if name == target then represent = tag; break end
+		end
+		findname:close()
+		return represent
+end
+
 
 local function get_game_tag()
-	-- try to just match the rom hash first
 	local tag = get_tag_from_hash_db(gameinfo.getromhash(), 'plugins/fighting-hashes.dat')
-	if tag ~= nil and gamedata[tag] ~= nil then return tag end
+	
+	if tag ~= nil and gamedata[tag] ~= nil then 
+		return tag
+		end
+		return nil
+end
 
-	-- check to see if any of the rom name samples match
-	local name = gameinfo.getromname()
-	for _,check in pairs(backupchecks) do
-		if check.test() then return check.tag end
-	end
+local function get_game_tag_from_name()
+	local tag = get_name_from_name_db(gameinfo.getromname(), 'plugins/fighting-names.dat')
+	
+	if tag ~= nil and gamedata[tag] ~= nil then
+		return tag
+		end
 
-	return nil
+		return nil
 end
 
 function plugin.on_setup(data, settings)
@@ -654,9 +707,12 @@ function plugin.on_game_load(data, settings)
 	swap_scheduled = false
 	shouldSwap = function() return false end
 
-	local tag = data.tags[gameinfo.getromhash()] or get_game_tag()
-	data.tags[gameinfo.getromhash()] = tag or NO_MATCH
-
+	local tag = data.tags[gameinfo.getromhash()] or data.tags[gameinfo.getromname()] or get_game_tag() or get_game_tag_from_name()
+		if get_game_tag() ~= nil then
+		data.tags[gameinfo.getromhash()] = tag or NO_MATCH
+		elseif get_game_tag_from_name() ~= nil then
+		data.tags[gameinfo.getromname()] = tag or NO_MATCH
+		end
 	-- first time through with a bad match, tag will be nil
 	-- can use this to print a debug message only the first time
 	if tag ~= nil and tag ~= NO_MATCH then
