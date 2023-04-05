@@ -483,6 +483,28 @@ local function virtua_fighter2_swap(gamemeta)
 	end
 end
 
+local function VFR_swap(gamemeta)
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+
+		if hitindicator == 4 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator >= 1 and grabindicator ~= previousgrab then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local gamedata = {
 	['SSF2Snes']={ -- Super Street Fighter 2 SNES USA
 		hitstun=function() return memory.read_u8(0x0594, "WRAM") end, --001100
@@ -656,14 +678,30 @@ local gamedata = {
 	['XMENVSSFSat']={ -- X-Men vs Street Fighter Saturn Japan
 		hitstun=function() return memory.read_u8(0x0F4511, "Work Ram High") end,
 	},
-	['XMENChildrenSat']={ -- X-Men - Children of the Atom
+	['XMENChildrenSat']={ -- X-Men - Children of the Atom Saturn
 		hitstun=function() return memory.read_u8(0x0E4511, "Work Ram High") end,
 	},
-	['VF2Sat']={ -- Virtua Fighter 2
+	['VF2Sat']={ -- Virtua Fighter 2 Saturn
 		hitstun=function() return memory.read_u8(0x0626E7, "Work Ram High") end,
 		grabbed=function() return memory.read_u8(0x0FA1A1, "Work Ram High") end,
 		ringout=function() return memory.read_u8(0x06262E, "Work Ram High") end,
+		func=virtua_fighter2_swap
 	},
+	['WakuWaku7']={ -- Waku Waku 7 Saturn
+		hitstun=function() return memory.read_u8(0x0A39A0, "Work Ram High") end,
+		grabbed=function() return memory.read_u8(0x0A957D, "Work Ram High") end,
+		func=grab_swap
+	},
+	['VFRemix']={ -- Virtua Fighter Remix Saturn
+		hitstun=function() return memory.read_u8(0x09207C, "Work Ram High") end,
+		grabbed=function() return memory.read_u8(0x091ECF, "Work Ram High") end,
+		func=VFR_swap
+	},
+	['VFKidsSat']={ -- Virtua Fighter Kids
+		hitstun=function() return memory.read_u8(0x045EA3, "Work Ram High") end,
+		grabbed=function() return memory.read_u8(0x0FA1A1, "Work Ram High") end,
+		ringout=function() return memory.read_u8(0x045DEA, "Work Ram High") end,
+		func=virtua_fighter2_swap
 }
 
 function get_name_from_name_db(target, database)
