@@ -10,6 +10,7 @@ plugin.description =
 	Supports:
 	-Capcom vs SNK Pro (USA)(PSX)
 	-Killer Instinct (USA)(SNES)
+	-Killer Instinct Gold (USA)(EU)(v1.00, Rev 1 & Rev 2)
 	-Primal Rage (USA)(SNES)
 	-Darkstalkers 3 (USA)(PSX)
 	-Tekken 3 (USA)(PSX)
@@ -22,13 +23,13 @@ plugin.description =
 	-Street Fighter Alpha 3 (USA)(PSX)
 	-Street Fighter EX Plus Alpha (USA)(PSX)
 	-Street Fighter EX2+ (JP)(USA)(PSX)
-	-Street Fighter III: 4rd Strike Hack (JP)(NO CD)(Not Recommended)(**)
+	-Street Fighter III: 4rd Strike Hack (JP)(NO CD)(**)(?)
 	-Street Fighter II: The World Warrior (USA)(PSX)($)(*)
 	-Street Fighter II': Champion Edition (USA)(PSX)($)(*)
 	-Street Fighter II' Turbo: Hyper Fighting (USA)(PSX)($)(*)
 	-Super Street Fighter II: The New Challengers (USA)(SNES)(PSX)(£)
 	-Super Street Fighter II Turbo (USA)(PSX)(£)
-	-Street Fighter - The Movie (USA)(PSX)
+	-Street Fighter - The Movie (USA)(PSX)(Saturn)
 	-Star Gladiator - Episode 1 - Final Crusade (USA)(PSX)
 	-Guilty Gear (v1.0)(USA)(PSX)(***)
 	-Gundam - The Battle Master (Japan)(PSX)(*)
@@ -37,12 +38,20 @@ plugin.description =
 	-The King of Fighters '95 (USA)(PSX)(*)
 	-Marvel Super Heroes vs Street Fighter (JP)(Saturn)
 	-X-Men vs. Street Fighter (JP)(Saturn)(1M, 2M, 3M)
-	-X-Men - Children of the Atom (JP, USA, Europe 2S & 3S)(Saturn)
+	-X-Men - Children of the Atom (JP, USA, EU 2S & 3S)(Saturn)
+	-Waku Waku 7 (JP)(Saturn)
+	-Virtua Fighter (USA)(Saturn)
+	-Virtua Fighter Remix (USA)(Saturn)
 	-Virtua Fighter 2 (USA)(Saturn)
+	-Virtua Fighter Kids (USA)(Saturn)
+	-Fighters Destiny (USA)
+	-Fighter Destiny 2 (USA)
+	-Garou - Mark of the Wolves (Arcade)(NGM-2530)(?)
 
 	(£)Part of Street Fighter Collection Disc 1 PSX
 	(%)Part of Street Fighter Collection Disc 2 PSX
 	($)Part of Street Fighter Collection 2 PSX
+	(?)MAME games take some time to switch depending on the system.
 	(*)No Combo Indicator so this will swap with each hit regardless
 	(**)CPS3 Arcade Games loading between swaps is too long to be fluid and near instant
 	(***)Grabbing does not swap
@@ -505,6 +514,81 @@ local function VFR_swap(gamemeta)
 	end
 end
 
+local function fighters_destiny(gamemeta)
+	return function(data)
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health or 24
+
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.health = P1health
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+	
+		if P1health > previoushealth and P1health ~= previoushealth and hitindicator == 128 then
+			return true
+			elseif P1health > previoushealth and P1health ~= previoushealth and grabindicator == 1 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+local function fighters_destiny2(gamemeta)
+	return function(data)
+
+		local P1health = gamemeta.health()
+		local previoushealth = data.health or 0
+
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.health = P1health
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+	
+		if P1health > previoushealth and P1health ~= previoushealth and hitindicator == 128 then
+			return true
+			elseif P1health > previoushealth and p1health ~= previoushealth and grabindicator == 1 then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+local function garou_MOTW(gamemeta)
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun() 
+		local previoushit = data.hitstun
+
+		local grabindicator = gamemeta.grabbed()
+		local previousgrab = data.grabbed
+
+		data.hitstun = hitindicator
+		data.grabbed = grabindicator
+
+		if hitindicator == 1 and grabindicator ~= 3 and hitindicator ~= previoushit then
+			return true 
+			elseif grabindicator == 3 and grabindicator ~= previousgrab then
+			return true
+			else
+			return false
+		end
+	end
+end
+
+
 local gamedata = {
 	['SSF2Snes']={ -- Super Street Fighter 2 SNES USA
 		hitstun=function() return memory.read_u8(0x0594, "WRAM") end, --001100
@@ -702,6 +786,40 @@ local gamedata = {
 		grabbed=function() return memory.read_u8(0x0FA1A1, "Work Ram High") end,
 		ringout=function() return memory.read_u8(0x045DEA, "Work Ram High") end,
 		func=virtua_fighter2_swap
+	},
+	['SFTMSat']={ -- Street Fighter The Movie Saturn USA
+		health=function() return memory.read_u8(0x050A86, "Work Ram High") end,
+		comboed=function() return memory.read_u8(0x050A38, "Work Ram High") end,
+		round=function() return memory.read_u8(0x0508BC, "Work Ram High") end,
+		block=function() return memory.read_u8(0x0509DC, "Work Ram High") end,
+		func=health_swap_SFTM
+	},
+	['KIGoldRev2']={ -- Killer Instinct Gold Rev 2/B
+		hitstun=function() return memory.read_u8(0x1D364D, "RDRAM") end,
+	},
+	['KIGold&Rev1']={ -- Killer Instinct Gold & Rev 1/A
+		hitstun=function() return memory.read_u8(0x1D35BD, "RDRAM") end,
+	},
+	['KIGoldPAL']={ -- Killer Instinct Gold Europe
+		hitstun=function() return memory.read_u8(0x1D36BD, "RDRAM") end,
+	},
+	['FightersDestiny']={ -- Fighters Destiny USA
+		hitstun=function() return memory.read_u8(0x207585, "RDRAM") end,
+		health=function() return memory.read_u8(0x2031E5, "RDRAM") end,
+		grabbed=function() return memory.read_u8(0x1F7AFA, "RDRAM") end,
+		func=fighters_destiny
+	},
+	['FightersDestiny2']={ -- Fighters Destiny 2 USA
+		hitstun=function() return memory.read_u8(0x1F2D19, "RDRAM") end,
+		health=function() return memory.read_u8(0x1ED13D, "RDRAM") end,
+		grabbed=function() return memory.read_u8(0x1CEC8B, "RDRAM") end,
+		func=fighters_destiny2
+	},
+	['GarouMOTW']={ -- Garou - Mark of the Wolves (Arcade)(NGM-2530)
+		hitstun=function() return memory.read_u8(0xA39D, "m68000 : ram : 0x100000-0x10FFFF") end,
+		grabbed=function() return memory.read_u8(0x0490, "m68000 : ram : 0x100000-0x10FFFF") end,
+		func=garou_MOTW
+	},
 }
 
 function get_name_from_name_db(target, database)
