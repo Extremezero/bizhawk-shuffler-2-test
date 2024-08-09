@@ -178,12 +178,13 @@ local function sf2snes_swap(gamemeta)
 
 		local blockindicator = gamemeta.block()
 		local airindicator = gamemeta.airstate()
+
 		local P1health = gamemeta.health()
+		local P1previoushealth = data.health or 0
 
 		local hitbackup = gamemeta.backup()
 		local previousbackup = data.backup
 
-		
 		local comboindicator = gamemeta.comboed()
 		local previouscombo = data.comboed
 
@@ -195,10 +196,14 @@ local function sf2snes_swap(gamemeta)
 		data.health = P1health
 		data.backup = hitbackup
 	
-			if P1health > 0 and comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit or grabindicator == 1 and grabindicator ~= previousgrab then --P1health > 0 and hitbackup == 1 and hitbackup ~= previousbackup
-			return true
-			-- airindicator == 0 and frames_since_restart > 40 then
-			-- return false
+			if P1health > 0 and comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit or grabindicator == 1 and grabindicator ~= previousgrab then
+				return true
+			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 0  and P1health < P1previoushealth then
+			 	return true
+			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 2  and P1health < P1previoushealth then
+				return true
+			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 4  and P1health < P1previoushealth then
+				return true
 			else
 			return false
 		end
@@ -597,7 +602,7 @@ local gamedata = {
 		airstate=function() return memory.read_u8(0x053C, "WRAM") end,
 		grabbed=function() return memory.read_u8(0x07DC, "WRAM") end,
 		health=function() return memory.read_u8(0x0636, "WRAM") end,
-		backup=function() return memory.read_u8(0x1949, "WRAM") end, --alt 1866
+		backup=function() return memory.read_u8(0x09D2, "WRAM") end,  --09D0
 		func=sf2snes_swap
 	},
 	['SFTM']={ -- Street Fighter The Movie PSX USA
