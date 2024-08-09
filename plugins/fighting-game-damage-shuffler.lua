@@ -177,12 +177,11 @@ local function sf2snes_swap(gamemeta)
 		local previousgrab = data.grabbed
 
 		local blockindicator = gamemeta.block()
-		local airindicator = gamemeta.airstate()
 
 		local P1health = gamemeta.health()
 		local P1previoushealth = data.health or 0
 
-		local hitbackup = gamemeta.backup()
+		local hitbackup = gamemeta.backup() -- Projectiles need an address that is active with a value of 2 when in motion. Most projectiles when hit will revert back to 0 except Ken and Ryu's hadokens which will go up to 4,6 than 0
 		local previousbackup = data.backup
 
 		local comboindicator = gamemeta.comboed()
@@ -191,7 +190,6 @@ local function sf2snes_swap(gamemeta)
 		data.hitstun = hitindicator
 		data.comboed = comboindicator
 		data.block = blockindicator
-		data.airstate = airindicator
 		data.grabbed = grabindicator
 		data.health = P1health
 		data.backup = hitbackup
@@ -596,13 +594,13 @@ end
 
 local gamedata = {
 	['SSF2Snes']={ -- Super Street Fighter 2 SNES USA
-		hitstun=function() return memory.read_u8(0x0594, "WRAM") end, --001100
+		hitstun=function() return memory.read_u8(0x0594, "WRAM") end,
 		comboed=function() return memory.read_u8(0x0681, "WRAM") end,
 		block=function() return memory.read_u8(0x0543, "WRAM") end,
 		airstate=function() return memory.read_u8(0x053C, "WRAM") end,
 		grabbed=function() return memory.read_u8(0x07DC, "WRAM") end,
-		health=function() return memory.read_u8(0x0636, "WRAM") end,
-		backup=function() return memory.read_u8(0x09D2, "WRAM") end,  --09D0
+		health=function() return memory.read_u8(0x0531, "WRAM") end,
+		backup=function() return memory.read_u8(0x09D2, "WRAM") end,
 		func=sf2snes_swap
 	},
 	['SFTM']={ -- Street Fighter The Movie PSX USA
