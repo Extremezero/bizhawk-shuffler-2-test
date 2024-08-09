@@ -39,17 +39,24 @@ plugin.description =
 	- Super Adventure Rockman PSX
 	- Mega Man: The Power Battle & The Power Fighters (Arcade)
 
+	Hacks & Homebrew:
+	- Mega Man: The Sequel Wars GEN
+
 	Bootlegs:
 	- Zook Hero Z (aka Rockman DX6) GBC
 	- Zook Hero 2 (aka Rockman X3) GBC
+	- Zook Hero 3 GBC
 	- Zook Man ZX4 (aka Rockman & Crystal) GBA
 	- Thunder Blast Man (aka Rocman X) GBC
 	- Rocman X NES (NesHawk only)
 	- Rockman 8 GB / Rockman X4 GBC
+	- Rockman X3 GEN
+	- Rockman EXE5 GBC
 ]]
 
 local NO_MATCH = 'NONE'
 
+local tags = {}
 local prevdata
 local swap_scheduled
 local shouldSwap
@@ -96,6 +103,12 @@ local function generic_swap(gamemeta)
 		data.prevhp = currhp
 		data.prevlc = currlc
 
+		-- Sometimes you will want to update hp and lives without triggering a swap (e.g., on swapping between characters).
+		-- If a method is provided for swap_exceptions and its conditions are true, process the hp and lives but don't swap.
+		if gamemeta.swap_exceptions and gamemeta.swap_exceptions() then
+			return false
+		end
+
 		-- this delay ensures that when the game ticks away health for the end of a level,
 		-- we can catch its purpose and hopefully not swap, since this isnt damage related
 		if data.hpcountdown ~= nil and data.hpcountdown > 0 then
@@ -115,7 +128,24 @@ local function generic_swap(gamemeta)
 			return true
 		end
 
+		-- Sometimes you want to swap for things that don't cost hp or lives, like non-standard game overs.
+		-- If a method is provided for other_swaps and its conditions are true, cue up a swap.
+		if gamemeta.other_swaps then
+			return gamemeta.other_swaps()
+		end
+
 		return false
+	end
+end
+
+local function generic_state_swap(gamemeta)
+	local hitstates = {}
+	for _, state in ipairs(gamemeta.hitstates) do
+		hitstates[state] = true
+	end
+	return function()
+		local state_changed, state = update_prev("state", gamemeta.getstate())
+		return state_changed and hitstates[state]
 	end
 end
 
@@ -134,7 +164,7 @@ end
 local function mmx6_swap(gamemeta)
 	return function()
 		-- check the damage counter used for the stats screen. not incremented by acid rain damage
-		_, damage, prev_damage = update_prev('damage', gamemeta.getdamage())
+		local _, damage, prev_damage = update_prev('damage', gamemeta.getdamage())
 		return prev_damage ~= nil and damage > prev_damage
 	end
 end
@@ -334,13 +364,42 @@ local gamedata = {
 	},
 	['mmx1gbc']={ -- Mega Man Xtreme GBC
 		gethp=function() return bit.band(memory.read_u8(0x0ADC, "WRAM"), 0x7F) end,
-		getlc=function() return memory.read_u8(0x1365, "WRAM") end,
+		getlc=function() return memory.read_s8(0x1365, "WRAM") end,
+		-- Prevent shuffle on selecting Retry. Lives go from 0 to 255 on losing your last life, then "drop" from 255 to 2 on starting again.
+		-- treating as a signed byte solves this
 		maxhp=function() return memory.read_u8(0x1384, "WRAM") end,
 	},
 	['mmx2gbc']={ -- Mega Man Xtreme 2 GBC
 		gethp=function() return bit.band(memory.read_u8(0x0121, "WRAM"), 0x7F) end,
-		getlc=function() return memory.read_u8(0x0065, "WRAM") end,
+		getlc=function() return memory.read_s8(0x0065, "WRAM") end,
+		-- Prevent shuffle on selecting Retry. Lives go from 0 to 255 on losing your last life, then "drop" from 255 to 2 on starting again.
+		-- treating as a signed byte solves this
 		maxhp=function() return memory.read_u8(0x0084, "WRAM") end,
+		swap_exceptions=function()
+			local character_changed = update_prev("character", memory.read_u8(0x00C9, "WRAM"))
+			-- X and Zero might have different HP; prevent swaps if swapping in a character with less HP
+			if character_changed then 
+				return true
+			end
+			local menu_selection = memory.read_u8(0x0A6A, "WRAM")
+			-- This address holds your selection on the opening screen.
+			-- 0 == Extreme Mode, 1 = X, 2 = Zero, 3 = Continue, 4 = Options, 5 = Boss Attack
+			-- If you go to the Options screen (4) or enter Boss Attack mode, lives will drop to 0
+			-- because you get no extra lives in Boss Attack.
+			-- So, we should never swap until being outside of selecting those modes.
+			if menu_selection == 4 or menu_selection == 5 then
+				return true
+			end
+			local maxhp_changed = update_prev("maxhp", memory.read_u8(0x0084, "WRAM"))
+			-- When you start a game from a mode where you have increased your maxhp (like Boss Attack)
+			-- then select a mode that doesn't have all the heart tanks yet, like a new game,
+			-- hp and maxhp drop on the same frame accordingly. This should not trigger a swap.
+			-- (Collecting a heart tank to increase maxhp should never trigger a swap, either, fwiw.)
+			if maxhp_changed then
+				return true
+			end
+			return false
+		end,
 	},
 	['mmgg']={ -- Mega Man Game Gear
 		gethp=function() return memory.read_u8(0x0268, "Main RAM") end,
@@ -554,6 +613,11 @@ local gamedata = {
 		getlc=function() return memory.read_u8(0x60, "HRAM") end,
 		maxhp=function() return 20 end,
 	},
+	['sintax-gbc'] = {
+		func=generic_state_swap,
+		getstate=function() return memory.read_u8(0xEE5, "WRAM") end,
+		hitstates={0x10, 0x12, 0x13},
+	},
 	['zook-man-zx4'] = {
 		gethp=function() return memory.read_u8(0x1638, "IWRAM") end,
 		getlc=function() return memory.read_u8(0x1634, "IWRAM") end,
@@ -579,7 +643,8 @@ local gamedata = {
 			return function()
 				local hit_changed, hit = update_prev("hit_changed", hit_states[memory.read_u8(0x56, "RAM")] or false)
 				local game_over_changed, game_over = update_prev("game_over", memory.read_u16_le(0x5C0, "RAM") == 0xD6D4)
-				return (hit_changed and hit) or
+				local in_shop = memory.read_u16_le(0x10, "RAM") == 0xD
+				return (hit_changed and hit and not in_shop) or
 				       (game_over_changed and game_over and not hit)
 			end
 		end
@@ -588,6 +653,16 @@ local gamedata = {
 		gethp=function() return memory.read_u8(0x027C, "WRAM") end,
 		getlc=function() return memory.read_u8(0x025E, "WRAM") end,
 		maxhp=function() return 8 end,
+	},
+	['mmx3gen'] = {
+		func=generic_state_swap,
+		getstate=function() return memory.read_u8(0xE7AB, "68K RAM") end,
+		hitstates={3, 4},
+	},
+	['sequel-wars-red']={ -- Mega Man: The Sequel Wars Episode Red (Genesis homebrew)
+		gethp=function() return memory.read_u16_be(0x306E, "68K RAM") end,
+		getlc=function() return memory.read_u8(0x01A1, "68K RAM") end,
+		maxhp=function() return 28 end,
 	},
 }
 
@@ -599,8 +674,6 @@ local function get_game_tag()
 	local tag = get_tag_from_hash_db(gameinfo.getromhash(), 'plugins/megaman-hashes.dat')
 	if tag ~= nil and gamedata[tag] ~= nil then return tag end
 
-	-- check to see if any of the rom name samples match
-	local name = gameinfo.getromname()
 	for _,check in pairs(backupchecks) do
 		if check.test() then return check.tag end
 	end
@@ -608,28 +681,24 @@ local function get_game_tag()
 	return nil
 end
 
-function plugin.on_setup(data, settings)
-	data.tags = data.tags or {}
-end
-
 function plugin.on_game_load(data, settings)
 	prevdata = {}
 	swap_scheduled = false
 	shouldSwap = function() return false end
 
-	local tag = data.tags[gameinfo.getromhash()] or get_game_tag()
-	data.tags[gameinfo.getromhash()] = tag or NO_MATCH
+	local tag = tags[gameinfo.getromhash()] or get_game_tag()
+	tags[gameinfo.getromhash()] = tag or NO_MATCH
 
 	-- first time through with a bad match, tag will be nil
 	-- can use this to print a debug message only the first time
 	if tag ~= nil and tag ~= NO_MATCH then
-		log_message('game match: ' .. tag)
+		log_console('Megaman Damage Shuffler: recognized as %s', tag)
 		local gamemeta = gamedata[tag]
 		local func = gamemeta.func or generic_swap
 		shouldSwap = func(gamemeta)
 	elseif tag == nil then
-		log_message(string.format('unrecognized? %s (%s)',
-			gameinfo.getromname(), gameinfo.getromhash()))
+		log_console('Megaman Damage Shuffler: unrecognized ROM "%s" (%s)',
+			gameinfo.getromname(), gameinfo.getromhash())
 	end
 end
 
