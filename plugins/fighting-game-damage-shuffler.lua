@@ -194,14 +194,21 @@ local function sf2snes_swap(gamemeta)
 		data.health = P1health
 		data.backup = hitbackup
 	
-			if P1health > 0 and comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit or grabindicator == 1 and grabindicator ~= previousgrab then
+			if comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit 
+				or grabindicator == 1 and grabindicator ~= previousgrab then
 				return true
-			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 0  and P1health < P1previoushealth then
+			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 0 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
+                if P1health ~= 176 and P1previoushealth ~= 255 then --This prevents a swap happening when the screen transistions to the next round
+				return true
+                end
+			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 2 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
+                if P1health ~= 176 and P1previoushealth ~= 255 then
+				return true
+                end
+			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 4 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
+                if P1health ~= 176 and P1previoushealth ~= 255 then
 			 	return true
-			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 2  and P1health < P1previoushealth then
-				return true
-			elseif P1health > 0 and blockindicator == 0 and comboindicator == 0 and hitbackup == 4  and P1health < P1previoushealth then
-				return true
+                end
 			else
 			return false
 		end
