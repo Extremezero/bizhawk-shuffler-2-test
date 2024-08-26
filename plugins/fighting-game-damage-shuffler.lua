@@ -187,30 +187,33 @@ local function sf2snes_swap(gamemeta)
 		local comboindicator = gamemeta.comboed()
 		local previouscombo = data.comboed
 
+		local projectile_changed, projectile_curr = update_prev("projectile", gamemeta.backup())
+
 		data.hitstun = hitindicator
 		data.comboed = comboindicator
 		data.block = blockindicator
 		data.grabbed = grabindicator
 		data.health = P1health
 		data.backup = hitbackup
+
+				if data.hpcountdown ~= nil and data.hpcountdown > 0 then
+					data.hpcountdown = data.hpcountdown - 1
+					if data.hpcountdown == 0 and P1health > 0 then
+					return true
+				end
+			end
 	
-			if comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit 
+				if comboindicator == 0 and blockindicator == 0 and hitindicator >= 1 and hitindicator ~= previoushit 
 				or grabindicator == 1 and grabindicator ~= previousgrab then
 				return true
-			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 0 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
-                if P1health ~= 176 and P1previoushealth ~= 255 then --This prevents a swap happening when the screen transistions to the next round
-				return true
-                end
-			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 2 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
-                if P1health ~= 176 and P1previoushealth ~= 255 then
-				return true
-                end
-			elseif blockindicator == 0 and comboindicator == 0 and hitbackup == 4 and P1health < P1previoushealth or hitbackup ~= previousbackup and P1health > P1previoushealth then
-                if P1health ~= 176 and P1previoushealth ~= 255 then
-			 	return true
-                end
-			else
-			return false
+				end
+				
+				if projectile_changed and projectile_curr == 2 then
+					projectile = 1
+				end
+				if projectile == 1 and P1health < P1previoushealth and blockindicator == 0 and comboindicator == 0 then
+					projectile = 0
+					return true
 		end
 	end
 end
@@ -606,7 +609,7 @@ local gamedata = {
 		block=function() return memory.read_u8(0x0543, "WRAM") end,
 		airstate=function() return memory.read_u8(0x053C, "WRAM") end,
 		grabbed=function() return memory.read_u8(0x07DC, "WRAM") end,
-		health=function() return memory.read_u8(0x0531, "WRAM") end,
+		health=function() return memory.read_u8(0x0636, "WRAM") end,
 		backup=function() return memory.read_u8(0x09D2, "WRAM") end,
 		func=sf2snes_swap
 	},
