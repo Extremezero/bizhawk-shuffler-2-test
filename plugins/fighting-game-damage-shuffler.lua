@@ -333,6 +333,25 @@ local function xmen_swap(gamemeta)
 	end
 end
 
+local function KISnes_swap(gamemeta)
+	return function(data)
+
+		local hitindicator = gamemeta.hitstun()
+		local previoushit = data.hitstun
+
+		local comboindicator = gamemeta.comboed()
+
+		data.comboed = comboindicator
+		data.hitstun = hitindicator
+
+		if comboindicator == 1 and hitindicator == 16 and hitindicator ~= previoushit then
+			return true
+			else
+			return false
+		end
+	end
+end
+
 local function star_swap(gamemeta)
 	return function(data)
 
@@ -683,7 +702,9 @@ local gamedata = {
 		hitstun=function() return memory.read_u8(0x06961D, "sh2 : ram : 0x2000000-0x207FFFF") end,
 	},
 	['KISNES']={ --Killer Instinct SNES USA
-		hitstun=function() return memory.read_u8(0x0DE8, "WRAM") end,
+		hitstun=function() return memory.read_u8(0x0804, "WRAM") end,
+		comboed=function() return memory.read_u8(0x0DE8, "WRAM") end,
+		func=KISnes_swap
 	},
 	['PrimalRageSNES']={ --Primal Rage SNES USA
 		hitstun=function() return memory.read_u8(0x1C94, "WRAM") end,
